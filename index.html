@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GDaD Evidence Review — Password Required</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #0b0c0c; background: #f3f2f1; }
+    #login-screen {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;
+    }
+    .login-box {
+      background: #fff; padding: 40px; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 400px; width: 100%; text-align: center;
+    }
+    .login-box h1 { font-size: 22px; margin-bottom: 8px; }
+    .login-box p { font-size: 14px; color: #505a5f; margin-bottom: 24px; }
+    .login-box input[type="password"] {
+      width: 100%; padding: 12px 16px; font-size: 16px; border: 2px solid #0b0c0c;
+      border-radius: 0; margin-bottom: 16px; font-family: inherit;
+    }
+    .login-box input[type="password"]:focus { outline: 3px solid #fd0; outline-offset: 0; border-color: #0b0c0c; }
+    .login-box button {
+      background: #00703c; color: #fff; border: none; padding: 12px 24px;
+      font-size: 16px; font-weight: 700; cursor: pointer; width: 100%;
+      box-shadow: 0 2px 0 #002d18;
+    }
+    .login-box button:hover { background: #005a30; }
+    .login-box button:focus { outline: 3px solid #fd0; outline-offset: 0; }
+    .error { color: #d4351c; font-size: 14px; margin-bottom: 12px; display: none; }
+    #content-area { display: none; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div id="login-screen">
+    <div class="login-box">
+      <h1>GDaD Evidence Review</h1>
+      <p>This page is password protected.<br>Enter the password to view Matt's evidence drafts.</p>
+      <div class="error" id="error-msg">Incorrect password. Please try again.</div>
+      <input type="password" id="pw-input" placeholder="Enter password" autofocus>
+      <button onclick="unlock()">Continue</button>
+    </div>
+  </div>
+  <div id="content-area"></div>
+
+  <script src="content.js"></script>
+  <script>
+    async function hashPassword(pw) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(pw);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function unlock() {
+      const pw = document.getElementById('pw-input').value;
+      const hash = await hashPassword(pw);
+
+      if (hash === PW_HASH) {
+        // Decode and show content
+        const styles = atob(STYLES);
+        const content = atob(CONTENT);
+
+        // Add styles
+        const styleEl = document.createElement('style');
+        styleEl.textContent = styles;
+        document.head.appendChild(styleEl);
+
+        // Show content
+        document.getElementById('login-screen').style.display = 'none';
+        const contentArea = document.getElementById('content-area');
+        contentArea.innerHTML = content;
+        contentArea.style.display = 'block';
+      } else {
+        document.getElementById('error-msg').style.display = 'block';
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').focus();
+      }
+    }
+
+    // Allow Enter key
+    document.getElementById('pw-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') unlock();
+    });
+  </script>
+</body>
+</html>
