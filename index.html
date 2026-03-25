@@ -60,8 +60,8 @@
 
       if (hash === PW_HASH) {
         // Decode and show content
-        const styles = atob(STYLES);
-        const content = atob(CONTENT);
+        const styles = decodeURIComponent(atob(STYLES));
+        const content = decodeURIComponent(atob(CONTENT));
 
         // Add styles
         const styleEl = document.createElement('style');
